@@ -1,0 +1,32 @@
+name: Build City OS Citadel AAB
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build TWA Bundle
+        run: |
+          npm install -g @bubblewrap/cli
+          bubblewrap init --manifest="https://ryslan201274-beep.github.io/manifest.json" --directory=twa-project
+          cd twa-project
+          sed -i 's/"packageId": "[^"]*"/"packageId": "com.cityos.citadel"/' twa-manifest.json
+          bubblewrap build --skipPwaValidation
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CityOSCitadel-Release-AAB
+          path: twa-project/*.aab
